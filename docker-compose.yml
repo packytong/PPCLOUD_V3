@@ -1,0 +1,7 @@
+services:
+  web:
+    build: .
+    container_name: ppcloud-media
+    ports:
+      - "8080:80"
+    restart: unless-stopped

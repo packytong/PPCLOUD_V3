@@ -1,0 +1,552 @@
+/* PP Cloud Media - LED Billboard Advertising Website */
+
+/* Google Fonts Import */
+@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap');
+
+/* Global Styles */
+:root {
+    --primary-color: #34835e;/**/
+    --secondary-color: #343a40;
+    --success-color: #28a745;
+    --warning-color: #34835e;/**/
+    --danger-color: #dc3545;
+    --light-color: #f8f9fa;
+    --dark-color: #343a40;
+    --transition: all 0.3s ease;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Kanit', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    scroll-behavior: smooth;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+/* Navigation */
+.navbar {
+    background: rgba(52, 58, 64, 0.95) !important;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: var(--transition);
+}
+
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: var(--primary-color) !important;
+}
+
+.navbar-nav .nav-link {
+    font-weight: 500;
+    margin: 0 10px;
+    transition: var(--transition);
+    position: relative;
+}
+
+.navbar-nav .nav-link:hover,
+.navbar-nav .nav-link.active {
+    color: var(--primary-color) !important;
+}
+
+.navbar-nav .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: var(--primary-color);
+    transition: var(--transition);
+    transform: translateX(-50%);
+}
+
+.navbar-nav .nav-link:hover::after,
+.navbar-nav .nav-link.active::after {
+    width: 80%;
+}
+
+/* Hero Section */
+.hero-section {
+    background: linear-gradient(135deg, rgba(52, 58, 64, 0.9), rgba(25, 25, 25, 0.9)),
+                url('https://images.unsplash.com/photo-1557804506-669a67965ba0?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 1;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    animation: fadeInUp 1s ease;
+}
+
+/* Specific styling for the Thailand coverage text */
+.hero-section .text-warning {
+    color: #34835e !important;
+}
+
+.stat-box {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: var(--transition);
+    position: relative;
+    z-index: 2;
+}
+
+.stat-box:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+/* Buttons */
+.btn {
+    font-weight: 600;
+    padding: 12px 30px;
+    border-radius: 50px;
+    transition: var(--transition);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.9rem;
+}
+
+.btn-warning {
+    background: linear-gradient(45deg, var(--warning-color), #34835e);
+    border: none;
+    /*box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);*/
+}
+
+.btn-warning:hover {
+    background: linear-gradient(45deg, #34835e, var(--warning-color));
+    transform: translateY(-2px);
+    /*box-shadow: 0 6px 20px rgba(255, 193, 7, 0.4);*/
+}
+
+.btn-outline-light:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+/* Service Cards */
+.service-card {
+    background: white;
+    border: none;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.service-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 193, 7, 0.1), transparent);
+    transition: var(--transition);
+}
+
+.service-card:hover::before {
+    left: 100%;
+}
+
+.service-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+}
+
+.service-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, rgba(255, 193, 7, 0.1), rgba(255, 193, 7, 0.2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    transition: var(--transition);
+}
+
+.service-card:hover .service-icon {
+    transform: scale(1.1);
+    background: linear-gradient(45deg, var(--warning-color), #ffb300);
+}
+
+.service-card:hover .service-icon i {
+    color: white !important;
+}
+
+/* Portfolio Section */
+.portfolio-card {
+    overflow: hidden;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.portfolio-card img {
+    transition: var(--transition);
+}
+
+.portfolio-overlay {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(52, 58, 64, 0.9));
+    opacity: 0;
+    transition: var(--transition);
+}
+
+.portfolio-card:hover .portfolio-overlay {
+    opacity: 1;
+}
+
+.portfolio-card:hover img {
+    transform: scale(1.1);
+    filter: brightness(0.7);
+}
+
+.portfolio-item {
+    animation: fadeInUp 0.6s ease;
+}
+
+/* Contact Section */
+.contact-info {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    transition: var(--transition);
+}
+
+.contact-info:hover {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.contact-form {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    transition: var(--transition);
+}
+
+.contact-form:hover {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.form-control, .form-select {
+    border-radius: 10px;
+    border: 2px solid #e9ecef;
+    transition: var(--transition);
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--warning-color);
+    box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(131, 7, 7, 0.05);
+}
+
+.contact-item:last-child {
+    border-bottom: none;
+}
+
+.map-container {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+/* Feature Items */
+.feature-item {
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 8px;
+    transition: var(--transition);
+}
+
+.feature-item:hover {
+    background: rgba(255, 255, 255, 1);
+    transform: translateX(5px);
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+/* Scroll to top button */
+#scrollTop {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: var(--warning-color);
+    color: white;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition);
+    z-index: 1000;
+    box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
+}
+
+#scrollTop:hover {
+    background: #ffb300;
+    transform: translateY(-5px);
+}
+
+#scrollTop.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Loading Spinner */
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid var(--warning-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 992px) {
+    .hero-content h1 {
+        font-size: 2.5rem;
+    }
+    
+    .stat-box {
+        margin-bottom: 15px;
+    }
+}
+
+@media (max-width: 768px) {
+    .hero-content h1 {
+        font-size: 2rem;
+    }
+    
+    .hero-content p {
+        font-size: 1rem;
+    }
+    
+    .btn {
+        padding: 10px 20px;
+        font-size: 0.8rem;
+    }
+    
+    .service-card {
+        margin-bottom: 20px;
+    }
+    
+    .portfolio-item {
+        margin-bottom: 20px;
+    }
+}
+
+@media (max-width: 576px) {
+    .hero-section {
+        text-align: center;
+    }
+    
+    .hero-content h1 {
+        font-size: 1.8rem;
+    }
+    
+    .stat-box {
+        padding: 15px;
+    }
+    
+    .stat-box h2 {
+        font-size: 1.5rem;
+    }
+    
+    .contact-info,
+    .contact-form {
+        margin-bottom: 20px;
+    }
+}
+
+/* Smooth scroll behavior */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Selection color */
+::selection {
+    background: var(--warning-color);
+    color: white;
+}
+
+::-moz-selection {
+    background: var(--warning-color);
+    color: white;
+}
+
+/* Focus styles for accessibility */
+.btn:focus,
+.form-control:focus,
+.form-select:focus,
+.navbar-nav .nav-link:focus {
+    outline: 2px solid var(--warning-color);
+    outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+    .navbar,
+    .hero-section,
+    #scrollTop,
+    .btn,
+    .modal {
+        display: none !important;
+    }
+    
+    body {
+        font-size: 12pt;
+        line-height: 1.4;
+    }
+    
+    .container {
+        max-width: 100%;
+    }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--warning-color);
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #ffb300;
+}
+
+/* Lazy loading images */
+img {
+    transition: opacity 0.3s ease;
+}
+
+img[data-src] {
+    opacity: 0;
+}
+
+img.loaded {
+    opacity: 1;
+}
+
+/* Specific styling for province badge in locations */
+.province-badge {
+    background: linear-gradient(45deg, #34835e, #34835e) !important;
+}
+
+/* Specific styling for modal header in locations */
+.modal-header {
+    background: linear-gradient(45deg, #28a745, #1e7e34) !important;
+    color: white !important;
+}
+
+/* Specific styling for all service icons in services */
+#services .service-icon i {
+    color: #34835e !important;
+}
+
+/* Specific styling for first button in hero section */
+#home .btn-warning:first-child {
+    color: white !important;
+}
+
+#home .btn-warning:first-child i {
+    color: white !important;
+}
+
+/* Specific styling for contact form submit button */
+#contactForm .btn-warning {
+    color: white !important;
+}
+
+#contactForm .btn-warning i {
+    color: white !important;
+}
+
+/* Specific styling for location list buttons */
+#locationsList .btn-warning {
+    color: white !important;
+}
+
+#locationsList .btn-warning i {
+    color: white !important;
+}
+
+/* Specific styling for about section first icon */
+#about .feature-item:nth-child(1) i {
+    color: #34835e !important;
+}
