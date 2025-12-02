@@ -1,0 +1,31 @@
+# Git
+.git
+.gitignore
+README.md
+README-WEBSITE.md
+
+# Python files (not needed for static site)
+check_csv.py
+convert_csv_to_js.py
+data.csv
+
+# Docker files
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# IDE files
+.vscode
+.idea
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp

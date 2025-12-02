@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  ppcloud-website:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ppcloud-media-website
+    ports:
+      - "80:80"
+    restart: unless-stopped
+    environment:
+      - NGINX_HOST=localhost
+      - NGINX_PORT=80
+    labels:
+      - "com.docker.compose.project=ppcloud-media"
+      - "traefik.enable=true"
+      - "traefik.http.routers.ppcloud.rule=Host(`localhost`)"
+      - "traefik.http.services.ppcloud.loadbalancer.server.port=80"
+    networks:
+      - ppcloud-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  ppcloud-network:
+    driver: bridge
+
+volumes:
+  nginx-logs:
+    driver: local
