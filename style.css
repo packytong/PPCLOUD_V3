@@ -278,6 +278,15 @@ h1, h2, h3, h4, h5, h6 {
     border-bottom: 1px solid rgba(131, 7, 7, 0.05);
 }
 
+.contact-item i.fa-map-marker-alt,
+.contact-item i.fa-phone,
+.contact-item i.fa-envelope,
+.contact-item i.fa-clock,
+.contact-item i.fa-chevron-right,
+#about .fa-chevron-right {
+    color: #34835e !important;
+}
+
 .contact-item:last-child {
     border-bottom: none;
 }
