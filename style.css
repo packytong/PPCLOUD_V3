@@ -146,15 +146,14 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-warning {
-    background: linear-gradient(45deg, var(--warning-color), #34835e);
-    border: none;
-    /*box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);*/
+    background: #34835e !important;
+    border-color: #34835e !important;
+    color: white !important;
 }
 
 .btn-warning:hover {
-    background: linear-gradient(45deg, #34835e, var(--warning-color));
-    transform: translateY(-2px);
-    /*box-shadow: 0 6px 20px rgba(255, 193, 7, 0.4);*/
+    background: #2d7050 !important;
+    border-color: #2d7050 !important;
 }
 
 .btn-outline-light:hover {
