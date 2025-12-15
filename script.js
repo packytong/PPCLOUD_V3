@@ -9,12 +9,46 @@ document.addEventListener('DOMContentLoaded', function() {
     initScrollEffects();
     initAnimations();
     initLazyLoading();
+    initCaching();
 });
+
+// Initialize caching functionality
+function initCaching() {
+    // Cache frequently accessed DOM elements
+    window.cache = {
+        navLinks: document.querySelectorAll('.navbar-nav .nav-link[href^="#"]'),
+        sections: document.querySelectorAll('section[id]'),
+        filterButtons: document.querySelectorAll('[data-filter]'),
+        portfolioItems: document.querySelectorAll('.portfolio-item'),
+        contactForm: document.getElementById('contactForm'),
+        scrollTop: document.getElementById('scrollTop'),
+        navbar: document.querySelector('.navbar'),
+        animatedElements: document.querySelectorAll('.service-card, .portfolio-item, .stat-box'),
+        statNumbers: document.querySelectorAll('.stat-box h2'),
+        phoneInput: document.getElementById('phone'),
+        portfolioCards: document.querySelectorAll('.portfolio-card button')
+    };
+    
+    // Cache location data if available
+    if (typeof locationsData !== 'undefined') {
+        localStorage.setItem('locationsData', JSON.stringify(locationsData));
+        localStorage.setItem('locationsDataTimestamp', Date.now());
+    }
+    
+    // Check for cached data and validate freshness (24 hours)
+    const cachedTimestamp = localStorage.getItem('locationsDataTimestamp');
+    if (cachedTimestamp && (Date.now() - parseInt(cachedTimestamp)) < 86400000) {
+        const cachedData = localStorage.getItem('locationsData');
+        if (cachedData) {
+            console.log('Using cached locations data');
+        }
+    }
+}
 
 // Navigation functionality
 function initNavigation() {
     // Smooth scrolling for navigation links
-    const navLinks = document.querySelectorAll('.navbar-nav .nav-link[href^="#"]');
+    const navLinks = window.cache.navLinks;
     
     navLinks.forEach(link => {
         link.addEventListener('click', function(e) {
@@ -33,8 +67,8 @@ function initNavigation() {
     });
     
     // Active navigation link based on scroll position
-    window.addEventListener('scroll', function() {
-        const sections = document.querySelectorAll('section[id]');
+    const throttledScrollHandler = throttle(function() {
+        const sections = window.cache.sections;
         const scrollY = window.pageYOffset;
         
         sections.forEach(section => {
@@ -47,7 +81,9 @@ function initNavigation() {
                 document.querySelector('.navbar-nav .nav-link:not([href="#' + sectionId + '"])')?.classList.remove('active');
             }
         });
-    });
+    }, 100);
+    
+    window.addEventListener('scroll', throttledScrollHandler);
 }
 
 // Scroll to section function
@@ -64,8 +100,8 @@ function scrollToSection(sectionId) {
 
 // Portfolio filter functionality
 function initPortfolioFilter() {
-    const filterButtons = document.querySelectorAll('[data-filter]');
-    const portfolioItems = document.querySelectorAll('.portfolio-item');
+    const filterButtons = window.cache.filterButtons;
+    const portfolioItems = window.cache.portfolioItems;
     
     filterButtons.forEach(button => {
         button.addEventListener('click', function() {
@@ -98,7 +134,7 @@ function initPortfolioFilter() {
 
 // Contact form functionality
 function initContactForm() {
-    const contactForm = document.getElementById('contactForm');
+    const contactForm = window.cache.contactForm;
     
     if (contactForm) {
         contactForm.addEventListener('submit', function(e) {
@@ -112,6 +148,9 @@ function initContactForm() {
                 service: document.getElementById('service').value,
                 message: document.getElementById('message').value
             };
+            
+            // Cache form data in sessionStorage for recovery
+            sessionStorage.setItem('contactFormData', JSON.stringify(formData));
             
             // Validate form
             if (validateContactForm(formData)) {
@@ -130,6 +169,9 @@ function initContactForm() {
                     // Reset form
                     contactForm.reset();
                     
+                    // Clear cached form data on successful submission
+                    sessionStorage.removeItem('contactFormData');
+                    
                     // Reset button
                     submitButton.innerHTML = originalText;
                     submitButton.disabled = false;
@@ -139,6 +181,21 @@ function initContactForm() {
                 }, 2000);
             }
         });
+    }
+    
+    // Restore form data from sessionStorage if available
+    const cachedFormData = sessionStorage.getItem('contactFormData');
+    if (cachedFormData) {
+        try {
+            const formData = JSON.parse(cachedFormData);
+            document.getElementById('name').value = formData.name || '';
+            document.getElementById('email').value = formData.email || '';
+            document.getElementById('phone').value = formData.phone || '';
+            document.getElementById('service').value = formData.service || '';
+            document.getElementById('message').value = formData.message || '';
+        } catch (e) {
+            console.error('Error restoring form data:', e);
+        }
     }
 }
 
@@ -202,14 +259,27 @@ function initScrollEffects() {
     scrollTop.innerHTML = '<i class="fas fa-arrow-up"></i>';
     document.body.appendChild(scrollTop);
     
+    // Cache the scroll top element
+    window.cache.scrollTop = scrollTop;
+    
     // Show/hide scroll to top button
-    window.addEventListener('scroll', function() {
+    const throttledScrollHandler = throttle(function() {
         if (window.pageYOffset > 300) {
             scrollTop.classList.add('show');
         } else {
             scrollTop.classList.remove('show');
         }
-    });
+        
+        // Navbar background on scroll
+        const navbar = window.cache.navbar;
+        if (window.pageYOffset > 50) {
+            navbar.style.background = 'rgba(52, 58, 64, 0.98)';
+        } else {
+            navbar.style.background = 'rgba(52, 58, 64, 0.95)';
+        }
+    }, 100);
+    
+    window.addEventListener('scroll', throttledScrollHandler);
     
     // Scroll to top functionality
     scrollTop.addEventListener('click', function() {
@@ -218,21 +288,11 @@ function initScrollEffects() {
             behavior: 'smooth'
         });
     });
-    
-    // Navbar background on scroll
-    const navbar = document.querySelector('.navbar');
-    window.addEventListener('scroll', function() {
-        if (window.pageYOffset > 50) {
-            navbar.style.background = 'rgba(52, 58, 64, 0.98)';
-        } else {
-            navbar.style.background = 'rgba(52, 58, 64, 0.95)';
-        }
-    });
 }
 
 // Animation on scroll
 function initAnimations() {
-    const animatedElements = document.querySelectorAll('.service-card, .portfolio-item, .stat-box');
+    const animatedElements = window.cache.animatedElements;
     
     const observerOptions = {
         threshold: 0.1,
@@ -265,7 +325,18 @@ function initLazyLoading() {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 const img = entry.target;
-                img.src = img.dataset.src;
+                
+                // Cache loaded images to avoid re-loading
+                const cacheKey = `img_${img.dataset.src}`;
+                const cachedSrc = sessionStorage.getItem(cacheKey);
+                
+                if (cachedSrc) {
+                    img.src = cachedSrc;
+                } else {
+                    img.src = img.dataset.src;
+                    sessionStorage.setItem(cacheKey, img.dataset.src);
+                }
+                
                 img.classList.add('loaded');
                 imageObserver.unobserve(img);
             }
@@ -300,7 +371,7 @@ function animateCounter(element, target, duration = 2000) {
 
 // Initialize counter animation when stats are visible
 function initCounterAnimation() {
-    const statNumbers = document.querySelectorAll('.stat-box h2');
+    const statNumbers = window.cache.statNumbers;
     const observerOptions = {
         threshold: 0.5
     };
@@ -337,7 +408,7 @@ function formatPhoneNumber(input) {
 
 // Add phone formatting to phone input
 document.addEventListener('DOMContentLoaded', function() {
-    const phoneInput = document.getElementById('phone');
+    const phoneInput = window.cache.phoneInput;
     if (phoneInput) {
         phoneInput.addEventListener('input', function() {
             formatPhoneNumber(this);
@@ -347,7 +418,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Portfolio modal functionality
 function initPortfolioModal() {
-    const portfolioCards = document.querySelectorAll('.portfolio-card button');
+    const portfolioCards = window.cache.portfolioCards;
     
     portfolioCards.forEach(button => {
         button.addEventListener('click', function(e) {
@@ -405,12 +476,25 @@ window.addEventListener('error', function(e) {
 // Service Worker registration (for PWA functionality)
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-        navigator.serviceWorker.register('/sw.js')
+        navigator.serviceWorker.register('/service-worker.js')
             .then(function(registration) {
                 console.log('SW registered: ', registration);
+                
+                // Check for updates periodically
+                setInterval(() => {
+                    registration.update();
+                }, 60 * 60 * 1000); // Check every hour
             })
             .catch(function(registrationError) {
                 console.log('SW registration failed: ', registrationError);
             });
+    });
+    
+    // Listen for controlling service worker
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (refreshing) return;
+        refreshing = true;
+        window.location.reload();
     });
 }

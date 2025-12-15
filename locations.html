@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ตำแหน่งจอ LED Billboard - PP Cloud Media</title>
+    <meta http-equiv="Cache-Control" content="public, max-age=31536000">
+    <meta http-equiv="Expires" content="Wed, 20 Dec 2025 12:00:00 GMT">
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -260,14 +262,43 @@
         let markers = [];
         let locations = [];
         let filteredLocations = [];
+        let mapCache = {};
 
         // Initialize page
         document.addEventListener('DOMContentLoaded', function() {
-            // Use locations data from external file
+            // Check for cached locations data first
+            const cachedTimestamp = localStorage.getItem('locationsDataTimestamp');
+            const cachedData = localStorage.getItem('locationsData');
+            
+            if (cachedData && cachedTimestamp && (Date.now() - parseInt(cachedTimestamp)) < 86400000) {
+                // Use cached data if it's less than 24 hours old
+                try {
+                    locations = JSON.parse(cachedData);
+                    console.log('Loaded', locations.length, 'locations from cache');
+                } catch (e) {
+                    console.error('Error parsing cached data:', e);
+                    loadFreshData();
+                }
+            } else {
+                loadFreshData();
+            }
+            
+            filteredLocations = [...locations];
+            initMap();
+            renderLocationsList();
+            setupFilters();
+        });
+        
+        // Load fresh data from external file
+        function loadFreshData() {
             if (typeof locationsData !== 'undefined') {
                 locations = locationsData;
                 console.log('Loaded', locations.length, 'locations from locations-data.js');
                 console.log('Bangkok locations:', locations.filter(loc => loc.province === 'กรุงเทพมหานคร').length);
+                
+                // Cache the fresh data
+                localStorage.setItem('locationsData', JSON.stringify(locations));
+                localStorage.setItem('locationsDataTimestamp', Date.now());
             } else {
                 console.error('locationsData is not defined! Using fallback data.');
                 // Fallback sample data if external file not loaded
@@ -288,19 +319,36 @@
                     }
                 ];
             }
-            filteredLocations = [...locations];
-            initMap();
-            renderLocationsList();
-            setupFilters();
-        });
+        }
 
         // Initialize map
         function initMap() {
-            map = L.map('map').setView([13.7468, 100.5350], 6);
+            // Check if map is already cached
+            const cachedMapState = sessionStorage.getItem('mapState');
+            if (cachedMapState) {
+                try {
+                    const mapState = JSON.parse(cachedMapState);
+                    map = L.map('map').setView(mapState.center, mapState.zoom);
+                } catch (e) {
+                    console.error('Error parsing cached map state:', e);
+                    map = L.map('map').setView([13.7468, 100.5350], 6);
+                }
+            } else {
+                map = L.map('map').setView([13.7468, 100.5350], 6);
+            }
             
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors'
             }).addTo(map);
+
+            // Cache map state on move/zoom
+            map.on('moveend zoomend', function() {
+                const mapState = {
+                    center: map.getCenter(),
+                    zoom: map.getZoom()
+                };
+                sessionStorage.setItem('mapState', JSON.stringify(mapState));
+            });
 
             addMarkers();
         }
@@ -311,16 +359,32 @@
             markers.forEach(marker => map.removeLayer(marker));
             markers = [];
 
+            // Create a document fragment for better performance
+            const fragment = document.createDocumentFragment();
+            
             filteredLocations.forEach(location => {
-                const color = getMarkerColor(location.size);
-                const marker = L.circleMarker([location.latitude, location.longitude], {
-                    radius: 8,
-                    fillColor: color,
-                    color: '#fff',
-                    weight: 2,
-                    opacity: 1,
-                    fillOpacity: 0.8
-                }).addTo(map);
+                // Check if marker is already cached
+                const cacheKey = `marker_${location.id}`;
+                let marker;
+                
+                if (mapCache[cacheKey]) {
+                    marker = mapCache[cacheKey];
+                } else {
+                    const color = getMarkerColor(location.size);
+                    marker = L.circleMarker([location.latitude, location.longitude], {
+                        radius: 8,
+                        fillColor: color,
+                        color: '#fff',
+                        weight: 2,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    });
+                    
+                    // Cache the marker
+                    mapCache[cacheKey] = marker;
+                }
+                
+                marker.addTo(map);
 
                 marker.bindPopup(`
                     <div style="min-width: 200px;">
@@ -360,33 +424,46 @@
         function renderLocationsList() {
             const listContainer = document.getElementById('locationsList');
             
-            listContainer.innerHTML = filteredLocations.map(location => `
-                <div class="location-card" data-location-id="${location.id}">
-                    <div class="province-badge">${location.province}</div>
-                    <h5 class="fw-bold mb-2">${location.name}</h5>
-                    <div class="location-details">
-                        <div class="detail-item">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <span>${location.address}</span>
+            // Check if we have cached HTML
+            const cacheKey = `locationsList_${filteredLocations.map(l => l.id).sort().join('_')}`;
+            const cachedHTML = sessionStorage.getItem(cacheKey);
+            
+            if (cachedHTML) {
+                listContainer.innerHTML = cachedHTML;
+            } else {
+                const html = filteredLocations.map(location => `
+                    <div class="location-card" data-location-id="${location.id}">
+                        <div class="province-badge">${location.province}</div>
+                        <h5 class="fw-bold mb-2">${location.name}</h5>
+                        <div class="location-details">
+                            <div class="detail-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>${location.address}</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-expand"></i>
+                                <span>ขนาด: ${location.dimensions}</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-clock"></i>
+                                <span>ออกอากาศ: ${location.showTimes}</span>
+                            </div>
+                            <div class="detail-item">
+                                <i class="fas fa-tv"></i>
+                                <span>Traffic: ${Number(location.viewersPerDay).toLocaleString('th-TH')}</span>
+                            </div>
                         </div>
-                        <div class="detail-item">
-                            <i class="fas fa-expand"></i>
-                            <span>ขนาด: ${location.dimensions}</span>
-                        </div>
-                        <div class="detail-item">
-                            <i class="fas fa-clock"></i>
-                            <span>ออกอากาศ: ${location.showTimes}</span>
-                        </div>
-                        <div class="detail-item">
-                            <i class="fas fa-tv"></i>
-                            <span>Traffic: ${Number(location.viewersPerDay).toLocaleString('th-TH')}</span>
-                        </div>
+                        <button class="btn btn-sm btn-warning w-100 mt-2" onclick="showLocationDetails(${location.id})">
+                            <i class="fas fa-info-circle me-2"></i>ดูรายละเอียด
+                        </button>
                     </div>
-                    <button class="btn btn-sm btn-warning w-100 mt-2" onclick="showLocationDetails(${location.id})">
-                        <i class="fas fa-info-circle me-2"></i>ดูรายละเอียด
-                    </button>
-                </div>
-            `).join('');
+                `).join('');
+                
+                listContainer.innerHTML = html;
+                
+                // Cache the HTML for future use
+                sessionStorage.setItem(cacheKey, html);
+            }
 
             // Add click events to location cards
             document.querySelectorAll('.location-card').forEach(card => {
