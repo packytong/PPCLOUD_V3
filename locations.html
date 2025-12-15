@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="style.css?v=1.0.5" rel="stylesheet">
+    <link href="style.css?v=1.0.10" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         .locations-hero {
@@ -266,7 +266,10 @@
             // Use locations data from external file
             if (typeof locationsData !== 'undefined') {
                 locations = locationsData;
+                console.log('Loaded', locations.length, 'locations from locations-data.js');
+                console.log('Bangkok locations:', locations.filter(loc => loc.province === 'กรุงเทพมหานคร').length);
             } else {
+                console.error('locationsData is not defined! Using fallback data.');
                 // Fallback sample data if external file not loaded
                 locations = [
                     {
@@ -415,13 +418,21 @@
             // Province filter
             document.getElementById('provinceFilter').addEventListener('change', function() {
                 filterLocations();
+                // Zoom to selected province
+                const selectedProvince = this.value;
+                if (selectedProvince) {
+                    zoomToProvince(selectedProvince);
+                }
             });
         }
 
         // Populate province filter
         function populateProvinceFilter() {
             const provinceFilter = document.getElementById('provinceFilter');
-            const provinces = [...new Set(locations.map(loc => loc.province))].sort();
+            const provinces = [...new Set(locations.map(loc => loc.province))];
+            
+            // Sort provinces using Thai locale
+            provinces.sort((a, b) => a.localeCompare(b, 'th'));
             
             provinces.forEach(province => {
                 const option = document.createElement('option');
@@ -445,7 +456,10 @@
                     locations
                         .filter(loc => loc.region === selectedRegion)
                         .map(loc => loc.province)
-                )].sort();
+                )];
+                
+                // Sort provinces using Thai locale
+                filteredProvinces.sort((a, b) => a.localeCompare(b, 'th'));
                 
                 filteredProvinces.forEach(province => {
                     const option = document.createElement('option');
@@ -496,6 +510,12 @@
             filteredLocations = [...locations];
             renderLocationsList();
             addMarkers();
+            
+            // Reset map view to show all locations
+            if (locations.length > 0) {
+                const bounds = L.latLngBounds(locations.map(loc => [loc.latitude, loc.longitude]));
+                map.fitBounds(bounds, { padding: [50, 50] });
+            }
         }
 
         // Highlight location on map
@@ -593,6 +613,40 @@
             setTimeout(() => {
                 window.location.href = 'index.html#contact';
             }, 500);
+        }
+        
+        // Zoom to province function
+        function zoomToProvince(provinceName) {
+            const provinceLocations = locations.filter(loc => loc.province === provinceName);
+            
+            if (provinceLocations.length > 0) {
+                // Calculate bounds for the province
+                const bounds = L.latLngBounds(provinceLocations.map(loc => [loc.latitude, loc.longitude]));
+                
+                // Fit map to province bounds with some padding
+                map.fitBounds(bounds, {
+                    padding: [50, 50],
+                    maxZoom: 14  // Limit zoom level to see all markers clearly
+                });
+                
+                // Optional: Highlight markers for this province
+                markers.forEach(marker => {
+                    const location = locations.find(loc => loc.id === marker.locationId);
+                    if (location && location.province === provinceName) {
+                        marker.setStyle({
+                            radius: 10,
+                            weight: 3,
+                            fillOpacity: 1
+                        });
+                    } else {
+                        marker.setStyle({
+                            radius: 8,
+                            weight: 2,
+                            fillOpacity: 0.8
+                        });
+                    }
+                });
+            }
         }
     </script>
 </body>
